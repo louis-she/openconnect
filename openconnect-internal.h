@@ -842,7 +842,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type,
 				unsigned char *buf, int len);
-int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this);
+int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *that);
 
 /* auth-juniper.c */
 int oncp_obtain_cookie(struct openconnect_info *vpninfo);
@@ -1130,25 +1130,25 @@ struct oc_packed_uint16_t {
 	uint16_t d;
 } __attribute__((packed));
 
-static inline uint32_t load_be32(const void *_p)
+static inline uint32_t load_be32(const struct oc_packed_uint32_t *_p)
 {
 	const struct oc_packed_uint32_t *p = _p;
 	return ntohl(p->d);
 }
 
-static inline uint16_t load_be16(const void *_p)
+static inline uint16_t load_be16(const struct oc_packed_uint16_t *_p)
 {
 	const struct oc_packed_uint16_t *p = _p;
 	return ntohs(p->d);
 }
 
-static inline void store_be32(void *_p, uint32_t d)
+static inline void store_be32(struct oc_packed_uint32_t *_p, uint32_t d)
 {
 	struct oc_packed_uint32_t *p = _p;
 	p->d = htonl(d);
 }
 
-static inline void store_be16(void *_p, uint16_t d)
+static inline void store_be16(struct oc_packed_uint16_t *_p, uint16_t d)
 {
 	struct oc_packed_uint16_t *p = _p;
 	p->d = htons(d);
@@ -1168,25 +1168,25 @@ static inline void store_be16(void *_p, uint16_t d)
     && __BYTE_ORDER == __LITTLE_ENDIAN) /* Linux */ ||			       \
    (defined(LITTLE_ENDIAN) && defined(BIG_ENDIAN) && defined(BYTE_ORDER)       \
     && BYTE_ORDER == LITTLE_ENDIAN) /* *BSD */
-static inline uint32_t load_le32(const void *_p)
+static inline uint32_t load_le32(const struct oc_packed_uint32_t *_p)
 {
 	const struct oc_packed_uint32_t *p = _p;
 	return p->d;
 }
 
-static inline uint16_t load_le16(const void *_p)
+static inline uint16_t load_le16(const struct oc_packed_uint16_t *_p)
 {
 	const struct oc_packed_uint16_t *p = _p;
 	return p->d;
 }
 
-static inline void store_le32(void *_p, uint32_t d)
+static inline void store_le32(struct oc_packed_uint32_t *_p, uint32_t d)
 {
 	struct oc_packed_uint32_t *p = _p;
 	p->d = d;
 }
 
-static inline void store_le16(void *_p, uint16_t d)
+static inline void store_le16(struct oc_packed_uint16_t *_p, uint16_t d)
 {
 	struct oc_packed_uint16_t *p = _p;
 	p->d = d;

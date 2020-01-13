@@ -811,13 +811,13 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type
 	return 0;
 }
 
-int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this)
+int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *that)
 {
 	int ret;
 
 	if (compr_type == COMPR_DEFLATE) {
-		vpninfo->deflate_strm.next_in = this->data;
-		vpninfo->deflate_strm.avail_in = this->len;
+		vpninfo->deflate_strm.next_in = that->data;
+		vpninfo->deflate_strm.avail_in = that->len;
 		vpninfo->deflate_strm.next_out = (void *)vpninfo->deflate_pkt->data;
 		vpninfo->deflate_strm.avail_out = vpninfo->deflate_pkt_size - 4;
 		vpninfo->deflate_strm.total_out = 0;
@@ -833,7 +833,7 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 
 		/* Add ongoing adler32 to tail of compressed packet */
 		vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
-						   this->data, this->len);
+						   that->data, that->len);
 
 		store_be32(&vpninfo->deflate_pkt->data[vpninfo->deflate_strm.total_out],
 			   vpninfo->deflate_adler32);
@@ -841,11 +841,11 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 		vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
 		return 0;
 	} else if (compr_type == COMPR_LZS) {
-		if (this->len < 40)
+		if (that->len < 40)
 			return -EFBIG;
 
-		ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
-				   this->data, this->len);
+		ret = lzs_compress(vpninfo->deflate_pkt->data, that->len,
+				   that->data, that->len);
 		if (ret < 0)
 			return ret;
 
@@ -853,11 +853,11 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 		return 0;
 #ifdef HAVE_LZ4
 	} else if (compr_type == COMPR_LZ4) {
-		if (this->len < 40)
+		if (that->len < 40)
 			return -EFBIG;
 
-		ret = LZ4_compress_default((void*)this->data, (void*)vpninfo->deflate_pkt->data,
-					   this->len, this->len);
+		ret = LZ4_compress_default((void*)that->data, (void*)vpninfo->deflate_pkt->data,
+					   that->len, that->len);
 		if (ret <= 0) {
 			if (ret == 0)
 				ret = -EFBIG;
